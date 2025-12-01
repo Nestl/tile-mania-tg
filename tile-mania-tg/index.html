@@ -7,7 +7,7 @@
   </head>
   <body style="text-align: center; padding: 0; border: 0; margin: 0;">
     <canvas id="unity-canvas" width=1080 height=1920 tabindex="-1" style="width: 1080px; height: 1920px; background: #0E0719"></canvas>
-    <script src="Build/Tile Mania v0.0.1.loader.js"></script>
+    <script src="Build/tile-mania-tg.loader.js"></script>
     <script>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile device style: fill the whole browser client area with the game canvas:
@@ -27,9 +27,9 @@
 
       createUnityInstance(document.querySelector("#unity-canvas"), {
         arguments: [],
-        dataUrl: "Build/Tile Mania v0.0.1.data",
-        frameworkUrl: "Build/Tile Mania v0.0.1.framework.js",
-        codeUrl: "Build/Tile Mania v0.0.1.wasm",
+        dataUrl: "Build/tile-mania-tg.data",
+        frameworkUrl: "Build/tile-mania-tg.framework.js",
+        codeUrl: "Build/tile-mania-tg.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Playmania LTD",
         productName: "Tile Mania",

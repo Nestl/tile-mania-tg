@@ -3,13 +3,25 @@
     "short_name": "Tile Mania",
     "start_url": "index.html",
     "display": "fullscreen",
-    "background_color": "#0E0719",
-    "theme_color": "#000",
-    "description": "",
-    "icons": [{
-      "src": "TemplateData/icons/unity-logo-dark.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }]
+    "background_color": "#210d32",
+    "theme_color": "#210d32",
+    "description": "Tile Mania - Match 3 Puzzle Game",
+    "icons": [
+      {
+        "src": "logo.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "favicon-32x32.png",
+        "sizes": "32x32",
+        "type": "image/png"
+      },
+      {
+        "src": "favicon-16x16.png",
+        "sizes": "16x16",
+        "type": "image/png"
+      }
+    ]
   }

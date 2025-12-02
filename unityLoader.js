@@ -412,11 +412,13 @@ function initOnlineTimer() {
     const stageRect = stage.getBoundingClientRect();
     
     const canvasTopRelativeToStage = canvasRect.top - stageRect.top;
-    timer.style.top = `${canvasTopRelativeToStage - 10}px`;
+    timer.style.top = `${canvasTopRelativeToStage - 5}px`;
   }
   
-  updateTimerPosition();
-  window.addEventListener('resize', updateTimerPosition);
+  setTimeout(() => {
+    updateTimerPosition();
+    window.addEventListener('resize', updateTimerPosition);
+  }, 500);
   
   let currentCount = Math.floor(Math.random() * 30) + 20;
   countEl.textContent = currentCount;

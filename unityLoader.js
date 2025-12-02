@@ -419,13 +419,13 @@ function initOnlineTimer() {
     }
     
     timer.style.display = 'flex';
-    timer.style.top = `${canvasTopRelativeToStage - 3}px`;
+    timer.style.top = `${canvasTopRelativeToStage - 10}px`;
   }
   
   setTimeout(() => {
     updateTimerPosition();
     window.addEventListener('resize', updateTimerPosition);
-  }, 1500);
+  }, 2000);
   
   let currentCount = Math.floor(Math.random() * 30) + 20;
   countEl.textContent = currentCount;

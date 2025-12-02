@@ -407,19 +407,25 @@ function initOnlineTimer() {
     if (!stage) return;
     
     const safeTop = getSafeTopFromTelegram();
-    const headerBottom = Math.max(safeTop, 70);
     
-    const stageRect = stage.getBoundingClientRect();
-    const stageTop = stageRect.top;
-    
-    if (headerBottom >= stageTop) {
+    if (safeTop <= 0) {
       timer.style.display = 'none';
       return;
     }
     
-    const centerY = headerBottom + (stageTop - headerBottom) * 0.5;
+    const headerBottom = safeTop + 70;
+    
+    const stageRect = stage.getBoundingClientRect();
+    const stageTop = stageRect.top;
+    
+    if (stageTop <= headerBottom + 4) {
+      timer.style.display = 'none';
+      return;
+    }
     
     timer.style.display = 'flex';
+    
+    const centerY = (headerBottom + stageTop) / 2;
     timer.style.top = `${centerY}px`;
   }
   

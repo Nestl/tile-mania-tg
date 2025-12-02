@@ -40,14 +40,6 @@ const config = {
 config.matchWebGLToCanvasSize = true;
 //config.devicePixelRatio = 2;
 
-// WebGL context attributes для предотвращения "блика" при разворачивании
-config.webglContextAttributes = {
-  preserveDrawingBuffer: false, // false для производительности, context restore обрабатываем вручную
-  powerPreference: 'high-performance',
-  failIfMajorPerformanceCaveat: false,
-  antialias: false // Unity сам управляет AA
-};
-
 const BG_PARAMS = {
   color1: '#4A1A5C',
   color2: '#1A0A2E',
@@ -137,7 +129,6 @@ function getSafeTopFromTelegram() {
     top = Math.round(cssTop + overlayTotal);
   }
   
-  // Добавляем дополнительный отступ для кнопки Close и меню только на мобильных (примерно 60-70px)
   if (top > 0 && isMobileLike()) {
     top = Math.max(top, 70);
   }
@@ -146,10 +137,30 @@ function getSafeTopFromTelegram() {
 }
 
 function sendSafeAreaToUnity(){
-  const px = getSafeTopFromTelegram();
+  const tg = window.Telegram?.WebApp;
+  const topPx = getSafeTopFromTelegram();
+  let bottomPx = 0;
+  
+  if (tg && tg.platform === 'android') {
+    const csi = tg.contentSafeAreaInset || tg.contentSafeAreaInsets;
+    const si = tg.safeAreaInset || tg.safeAreaInsets;
+    
+    if (csi && typeof csi.bottom === 'number') {
+      bottomPx = csi.bottom;
+    } else if (si && typeof si.bottom === 'number') {
+      bottomPx = si.bottom;
+    }
+    
+    if (bottomPx === 0) {
+      const css = getComputedStyle(document.documentElement);
+      const cssBottom = parseFloat(css.getPropertyValue('--sab')) || 0;
+      bottomPx = Math.round(cssBottom);
+    }
+  }
+  
   if (window.unityInstance){
     try { 
-      window.unityInstance.SendMessage('WebGLResizeHandler','SetSafeArea', String(px)); 
+      window.unityInstance.SendMessage('WebGLResizeHandler','SetSafeArea', `${topPx},${bottomPx}`); 
     } catch (e) {
       console.log('SendMessage failed:', e);
     }
@@ -200,10 +211,8 @@ function layoutStage(){
   if (isLayouting) return;
   isLayouting = true;
 
-  // Получаем safe area от Telegram
   const safeTop = getSafeTopFromTelegram();
   
-  // Применяем padding к stage только на мобильных устройствах
   if (safeTop > 0 && isMobileLike()) {
     stage.style.paddingTop = `${safeTop}px`;
   } else {
@@ -219,7 +228,6 @@ function layoutStage(){
     canvas.height = h;
     try { 
       unityInstance?.Module?.setCanvasSize?.(w, h);
-      // Вызываем Unity метод для пересоздания framebuffer
       if (window.unityInstance) {
         window.unityInstance.SendMessage('WebGLResizeHandler', 'ForceResize', '');
       }
@@ -261,7 +269,6 @@ try {
     tg.ready();
     tg.expand();
     
-    // Скрываем заголовок Telegram для предотвращения перекрытия интерфейса
     try {
       tg.setHeaderColor?.('bg_color');
       if (typeof tg.isClosingConfirmationEnabled !== 'undefined') {
@@ -274,7 +281,6 @@ try {
       tg.disableVerticalSwipes();
     }
     
-    // Viewport change handler
     tg.onEvent('viewportChanged', (e) => {
       if (e && e.isStateStable === true && !telegramViewportStable) {
         telegramViewportStable = true;
@@ -283,7 +289,6 @@ try {
       }
     });
     
-    // Initial fullscreen attempt
     requestAnimationFrame(() => {
       debouncedResize();
       requestFullscreenOnce();
@@ -309,133 +314,6 @@ function isMobileTelegramStrict() {
   return false;
 }
 
-// Функция для включения native immersive fullscreen
-function enterImmersiveMode() {
-  const docEl = document.documentElement;
-  
-  try {
-    if (docEl.requestFullscreen) {
-      docEl.requestFullscreen({ navigationUI: 'hide' });
-    } else if (docEl.webkitRequestFullscreen) {
-      docEl.webkitRequestFullscreen();
-    } else if (docEl.mozRequestFullScreen) {
-      docEl.mozRequestFullScreen();
-    }
-  } catch (e) {
-    console.log('Immersive mode failed:', e);
-  }
-}
-
-// Функция для Telegram fullscreen
-function requestTGFullscreen() {
-  const tg = window.Telegram?.WebApp;
-  if (tg && typeof tg.requestFullscreen === 'function') {
-    try {
-      tg.requestFullscreen();
-    } catch (e) {
-      console.log('TG fullscreen failed:', e);
-    }
-  }
-}
-
-// Полное включение fullscreen (для Android)
-function enforceFullscreen() {
-  requestTGFullscreen();
-  setTimeout(() => {
-    enterImmersiveMode();
-  }, 150);
-}
-
-// Настройка анти-навигация для Android
-function setupAntiNavigationBar() {
-  const tg = window.Telegram?.WebApp;
-  if (!tg || tg.platform !== 'android') return;
-  
-  let isFullscreenActive = false;
-  let lastTouchTime = 0;
-  const THROTTLE_MS = 500; // Ограничение частоты вызовов
-  
-  // Проверяем, в fullscreen ли мы
-  function checkFullscreenState() {
-    isFullscreenActive = !!(document.fullscreenElement || document.webkitFullscreenElement);
-    return isFullscreenActive;
-  }
-  
-  // Повторно включаем fullscreen если он сбросился
-  function reEnableFullscreenIfNeeded() {
-    const now = Date.now();
-    
-    // Throttle: не чаще раза в 500ms
-    if (now - lastTouchTime < THROTTLE_MS) return;
-    lastTouchTime = now;
-    
-    // Если fullscreen сбросился - включаем снова
-    if (!checkFullscreenState()) {
-      enforceFullscreen();
-    }
-  }
-  
-  // Обработчик касаний - повторно включаем fullscreen
-  document.addEventListener('touchstart', reEnableFullscreenIfNeeded, { passive: true });
-  
-  // При изменении размера окна - проверяем fullscreen
-  window.addEventListener('resize', () => {
-    if (!checkFullscreenState()) {
-      setTimeout(enforceFullscreen, 100);
-    }
-  });
-  
-  // Отслеживаем выход из fullscreen
-  document.addEventListener('fullscreenchange', checkFullscreenState);
-  document.addEventListener('webkitfullscreenchange', checkFullscreenState);
-  
-  // CSS для скрытия переполнения
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
-  
-  console.log('Android anti-navigation bar setup complete');
-}
-
-// Обработка сворачивания/разворачивания вкладки для предотвращения "блика"
-function setupVisibilityHandling() {
-  let wasHidden = false;
-  
-  // Обработчик изменения видимости вкладки
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      // Вкладка сворачивается
-      wasHidden = true;
-      console.log('Tab hidden - preserving state');
-    } else if (wasHidden) {
-      // Вкладка разворачивается
-      wasHidden = false;
-      console.log('Tab visible - restoring');
-      
-      // Небольшая задержка перед resize для стабилизации
-      setTimeout(() => {
-        debouncedResize();
-      }, 100);
-    }
-  });
-  
-  // Обработка потери/восстановления WebGL контекста
-  const canvas = document.getElementById('unity-canvas');
-  if (canvas) {
-    canvas.addEventListener('webglcontextlost', (e) => {
-      console.log('WebGL context lost');
-      e.preventDefault(); // Предотвращаем дефолтное поведение
-    }, false);
-    
-    canvas.addEventListener('webglcontextrestored', () => {
-      console.log('WebGL context restored');
-      // Форсируем resize после восстановления контекста
-      setTimeout(() => {
-        debouncedResize();
-      }, 50);
-    }, false);
-  }
-}
-
 async function requestFullscreenOnce() {
   const tg = window.Telegram?.WebApp;
   if (!tg || !isMobileTelegramStrict()) return;
@@ -448,11 +326,43 @@ async function requestFullscreenOnce() {
     const isAndroid = tg.platform === 'android';
     
     if (isAndroid) {
-      // Для Android - запускаем систему анти-навигации
-      enforceFullscreen();
-      setupAntiNavigationBar();
+      if (typeof tg.requestFullscreen === 'function') {
+        await tg.requestFullscreen();
+      }
+      
+      setTimeout(async () => {
+        try {
+          const docEl = document.documentElement;
+          
+          if (docEl.requestFullscreen) {
+            await docEl.requestFullscreen({ navigationUI: 'hide' });
+          } else if (docEl.webkitRequestFullscreen) {
+            await docEl.webkitRequestFullscreen();
+          } else if (docEl.mozRequestFullScreen) {
+            await docEl.mozRequestFullScreen();
+          }
+          
+          document.body.style.overflow = 'hidden';
+          document.documentElement.style.overflow = 'hidden';
+          
+          let hideNavTimeout;
+          const hideNavigation = () => {
+            clearTimeout(hideNavTimeout);
+            hideNavTimeout = setTimeout(() => {
+              if (document.fullscreenElement || document.webkitFullscreenElement) {
+                window.scrollTo(0, 1);
+              }
+            }, 100);
+          };
+          
+          document.addEventListener('touchstart', hideNavigation, { passive: true });
+          document.addEventListener('click', hideNavigation);
+          
+        } catch (e) {
+          console.log('Native fullscreen failed:', e);
+        }
+      }, 300);
     } else {
-      // iOS - только Telegram API
       if (typeof tg.requestFullscreen === 'function') {
         await tg.requestFullscreen();
       }
@@ -487,9 +397,6 @@ function updateBubbles(progress){
 window.addEventListener("load", () => {
   errorBox.style.display = "none";
   layoutStage();
-  
-  // Инициализируем обработку видимости вкладки
-  setupVisibilityHandling();
 
   createUnityInstance(canvas, config, (progress) => {
     updateBubbles(progress);
@@ -499,7 +406,6 @@ window.addEventListener("load", () => {
     window.unityInstance = instance;
     sendSafeAreaToUnity();
 
-    // Меняем фон на монолитный фиолетовый после загрузки
     bgCanvas.style.background = '#210d32';
     bgCtx.fillStyle = '#210d32';
     bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);

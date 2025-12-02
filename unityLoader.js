@@ -182,6 +182,16 @@ function layoutStage(){
   if (isLayouting) return;
   isLayouting = true;
 
+  // Получаем safe area от Telegram
+  const safeTop = getSafeTopFromTelegram();
+  
+  // Применяем padding к stage если есть safe area
+  if (safeTop > 0) {
+    stage.style.paddingTop = `${safeTop}px`;
+  } else {
+    stage.style.paddingTop = '0';
+  }
+
   const r = stage.getBoundingClientRect();
   const w = Math.round(r.width);
   const h = Math.round(r.height);

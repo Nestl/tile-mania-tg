@@ -418,8 +418,12 @@ function initOnlineTimer() {
       return;
     }
     
+    const tg = window.Telegram?.WebApp;
+    const isAndroid = tg && tg.platform === 'android';
+    const offset = isAndroid ? -15 : -3;
+    
     timer.style.display = 'flex';
-    timer.style.top = `${canvasTopRelativeToStage -5}px`;
+    timer.style.top = `${canvasTopRelativeToStage + offset}px`;
   }
   
   setTimeout(() => {

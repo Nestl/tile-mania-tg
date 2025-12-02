@@ -38,7 +38,7 @@ const config = {
 };
 
 config.matchWebGLToCanvasSize = false;
-config.devicePixelRatio = window.devicePixelRatio || 1;
+config.devicePixelRatio = 1;
 
 const BG_PARAMS = {
   color1: '#4A1A5C',
@@ -128,6 +128,12 @@ function getSafeTopFromTelegram() {
     const overlayTotal = Math.max(0, window.innerHeight - tgH);
     top = Math.round(cssTop + overlayTotal);
   }
+  
+  // Добавляем дополнительный отступ для кнопки Close и меню только на мобильных (примерно 60-70px)
+  if (top > 0 && isMobileLike()) {
+    top = Math.max(top, 70);
+  }
+  
   return Math.max(0, Math.round(top));
 }
 
@@ -238,6 +244,14 @@ try {
     const tg = Telegram.WebApp;
     tg.ready();
     tg.expand();
+    
+    // Скрываем заголовок Telegram для предотвращения перекрытия интерфейса
+    try {
+      tg.setHeaderColor?.('bg_color');
+      if (typeof tg.isClosingConfirmationEnabled !== 'undefined') {
+        tg.enableClosingConfirmation();
+      }
+    } catch (e) {}
 
     const tgVersion = parseFloat(tg.version);
     if (!Number.isNaN(tgVersion) && tgVersion >= 7.7 && typeof tg.disableVerticalSwipes === 'function') {
@@ -290,16 +304,37 @@ async function requestFullscreenOnce() {
     
     // Запрашиваем fullscreen только на мобильных
     if (typeof tg.requestFullscreen === 'function') {
-      // Для Android добавляем параметры для скрытия системных кнопок
       const isAndroid = tg.platform === 'android';
+      
+      // Для Android используем специальный режим для скрытия системных кнопок
       if (isAndroid) {
+        // Сначала пробуем Telegram API
         await tg.requestFullscreen();
-        // Дополнительная попытка скрыть системные элементы
-        try {
-          if (document.documentElement.requestFullscreen) {
-            await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+        
+        // Затем пробуем нативный fullscreen с immersive mode
+        setTimeout(async () => {
+          try {
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+              await docEl.requestFullscreen({ navigationUI: 'hide' });
+            } else if (docEl.webkitRequestFullscreen) {
+              await docEl.webkitRequestFullscreen();
+            } else if (docEl.mozRequestFullScreen) {
+              await docEl.mozRequestFullScreen();
+            }
+            
+            // Добавляем meta-тег для Android immersive mode
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+              metaTheme = document.createElement('meta');
+              metaTheme.name = 'theme-color';
+              document.head.appendChild(metaTheme);
+            }
+            metaTheme.content = '#210d32';
+          } catch (e) {
+            console.log('Native fullscreen failed:', e);
           }
-        } catch (e) {}
+        }, 300);
       } else {
         await tg.requestFullscreen();
       }

@@ -38,7 +38,7 @@ const config = {
 };
 
 config.matchWebGLToCanvasSize = false;
-config.devicePixelRatio = 1;
+config.devicePixelRatio = window.devicePixelRatio || 1;
 
 const BG_PARAMS = {
   color1: '#4A1A5C',
@@ -185,8 +185,8 @@ function layoutStage(){
   // Получаем safe area от Telegram
   const safeTop = getSafeTopFromTelegram();
   
-  // Применяем padding к stage если есть safe area
-  if (safeTop > 0) {
+  // Применяем padding к stage только на мобильных устройствах
+  if (safeTop > 0 && isMobileLike()) {
     stage.style.paddingTop = `${safeTop}px`;
   } else {
     stage.style.paddingTop = '0';
@@ -288,8 +288,21 @@ async function requestFullscreenOnce() {
     tg.expand?.(); 
     tg.setHeaderColor?.('bg_color');
     
+    // Запрашиваем fullscreen только на мобильных
     if (typeof tg.requestFullscreen === 'function') {
-      await tg.requestFullscreen();
+      // Для Android добавляем параметры для скрытия системных кнопок
+      const isAndroid = tg.platform === 'android';
+      if (isAndroid) {
+        await tg.requestFullscreen();
+        // Дополнительная попытка скрыть системные элементы
+        try {
+          if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+          }
+        } catch (e) {}
+      } else {
+        await tg.requestFullscreen();
+      }
     }
   } catch (error) {
     console.log('Fullscreen request failed:', error);
@@ -329,6 +342,11 @@ window.addEventListener("load", () => {
     unityInstanceRef = instance;
     window.unityInstance = instance;
     sendSafeAreaToUnity();
+
+    // Меняем фон на монолитный фиолетовый после загрузки
+    bgCanvas.style.background = '#210d32';
+    bgCtx.fillStyle = '#210d32';
+    bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
 
     loader.style.opacity = "0";
     setTimeout(() => { loader.style.display = "none"; }, 180);

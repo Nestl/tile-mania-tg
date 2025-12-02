@@ -38,7 +38,7 @@ const config = {
 };
 
 config.matchWebGLToCanvasSize = false;
-config.devicePixelRatio = 2;
+//config.devicePixelRatio = 2;
 
 const BG_PARAMS = {
   color1: '#4A1A5C',

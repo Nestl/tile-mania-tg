@@ -402,15 +402,21 @@ function initOnlineTimer() {
   
   if (!timer || !countEl) return;
   
-  function updateRandomCount() {
-    const count = Math.floor(Math.random() * 50) + 10;
-    countEl.textContent = count;
+  let currentCount = Math.floor(Math.random() * 30) + 20;
+  countEl.textContent = currentCount;
+  
+  function updateCount() {
+    const change = Math.floor(Math.random() * 5) + 1;
+    const direction = Math.random() > 0.5 ? 1 : -1;
+    
+    currentCount = Math.max(10, Math.min(100, currentCount + (change * direction)));
+    countEl.textContent = currentCount;
   }
   
-  updateRandomCount();
-  setInterval(updateRandomCount, 3000);
+  setInterval(updateCount, 3000);
   
   window.setOnlineCount = function(count) {
+    currentCount = count;
     countEl.textContent = count;
   };
 }

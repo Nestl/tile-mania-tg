@@ -121,7 +121,7 @@ html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font
 
 #online-timer {
   position: absolute;
-  top: 35px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;

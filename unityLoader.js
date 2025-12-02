@@ -420,7 +420,7 @@ function initOnlineTimer() {
     
     const tg = window.Telegram?.WebApp;
     const isAndroid = tg && tg.platform === 'android';
-    const offset = isAndroid ? -15 : -3;
+    const offset = isAndroid ? -40 : -4;
     
     timer.style.display = 'flex';
     timer.style.top = `${canvasTopRelativeToStage + offset}px`;

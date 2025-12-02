@@ -403,27 +403,24 @@ function initOnlineTimer() {
   if (!timer || !countEl) return;
   
   function updateTimerPosition() {
-    const canvas = document.getElementById('unity-canvas');
     const stage = document.getElementById('stage');
+    if (!stage) return;
     
-    if (!canvas || !stage) return;
+    const safeTop = getSafeTopFromTelegram();
+    const headerBottom = Math.max(safeTop, 70);
     
-    const canvasRect = canvas.getBoundingClientRect();
     const stageRect = stage.getBoundingClientRect();
+    const stageTop = stageRect.top;
     
-    const canvasTopRelativeToStage = canvasRect.top - stageRect.top;
-    
-    if (canvasTopRelativeToStage <= 0) {
+    if (headerBottom >= stageTop) {
       timer.style.display = 'none';
       return;
     }
     
-    const tg = window.Telegram?.WebApp;
-    const isAndroid = tg && tg.platform === 'android';
-    const offset = isAndroid ? -20 : -4.5;
+    const centerY = headerBottom + (stageTop - headerBottom) * 0.5;
     
     timer.style.display = 'flex';
-    timer.style.top = `${canvasTopRelativeToStage + offset}px`;
+    timer.style.top = `${centerY}px`;
   }
   
   setTimeout(() => {

@@ -394,65 +394,6 @@ function updateBubbles(progress){
 }
 
 
-function initOnlineTimer() {
-  if (!isMobileLike()) return;
-  
-  const timer = document.getElementById('online-timer');
-  const countEl = document.getElementById('online-count');
-  
-  if (!timer || !countEl) return;
-  
-  function updateTimerPosition() {
-    const stage = document.getElementById('stage');
-    if (!stage) return;
-    
-    const safeTop = getSafeTopFromTelegram();
-    
-    if (safeTop <= 0) {
-      timer.style.display = 'none';
-      return;
-    }
-    
-    const headerBottom = safeTop + 70;
-    
-    const stageRect = stage.getBoundingClientRect();
-    const stageTop = stageRect.top;
-    
-    if (stageTop <= headerBottom + 4) {
-      timer.style.display = 'none';
-      return;
-    }
-    
-    timer.style.display = 'flex';
-    
-    const centerY = (headerBottom + stageTop) / 2;
-    timer.style.top = `${centerY}px`;
-  }
-  
-  setTimeout(() => {
-    updateTimerPosition();
-    window.addEventListener('resize', updateTimerPosition);
-  }, 2000);
-  
-  let currentCount = Math.floor(Math.random() * 30) + 20;
-  countEl.textContent = currentCount;
-  
-  function updateCount() {
-    const change = Math.floor(Math.random() * 5) + 1;
-    const direction = Math.random() > 0.5 ? 1 : -1;
-    
-    currentCount = Math.max(10, Math.min(100, currentCount + (change * direction)));
-    countEl.textContent = currentCount;
-  }
-  
-  setInterval(updateCount, 3000);
-  
-  window.setOnlineCount = function(count) {
-    currentCount = count;
-    countEl.textContent = count;
-  };
-}
-
 window.addEventListener("load", () => {
   errorBox.style.display = "none";
   layoutStage();
@@ -464,8 +405,6 @@ window.addEventListener("load", () => {
     unityInstanceRef = instance;
     window.unityInstance = instance;
     sendSafeAreaToUnity();
-    
-    initOnlineTimer();
 
     bgCanvas.style.background = '#210d32';
     bgCtx.fillStyle = '#210d32';

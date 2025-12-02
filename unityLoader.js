@@ -419,7 +419,7 @@ function initOnlineTimer() {
     }
     
     timer.style.display = 'flex';
-    timer.style.top = `${canvasTopRelativeToStage -8}px`;
+    timer.style.top = `${canvasTopRelativeToStage -6}px`;
   }
   
   setTimeout(() => {

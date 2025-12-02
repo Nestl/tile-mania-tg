@@ -412,13 +412,20 @@ function initOnlineTimer() {
     const stageRect = stage.getBoundingClientRect();
     
     const canvasTopRelativeToStage = canvasRect.top - stageRect.top;
-    timer.style.top = `${canvasTopRelativeToStage - 5}px`;
+    
+    if (canvasTopRelativeToStage <= 0) {
+      timer.style.display = 'none';
+      return;
+    }
+    
+    timer.style.display = 'flex';
+    timer.style.top = `${canvasTopRelativeToStage}px`;
   }
   
   setTimeout(() => {
     updateTimerPosition();
     window.addEventListener('resize', updateTimerPosition);
-  }, 500);
+  }, 1500);
   
   let currentCount = Math.floor(Math.random() * 30) + 20;
   countEl.textContent = currentCount;

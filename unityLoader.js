@@ -402,6 +402,22 @@ function initOnlineTimer() {
   
   if (!timer || !countEl) return;
   
+  function updateTimerPosition() {
+    const canvas = document.getElementById('unity-canvas');
+    const stage = document.getElementById('stage');
+    
+    if (!canvas || !stage) return;
+    
+    const canvasRect = canvas.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
+    
+    const canvasTopRelativeToStage = canvasRect.top - stageRect.top;
+    timer.style.top = `${canvasTopRelativeToStage - 10}px`;
+  }
+  
+  updateTimerPosition();
+  window.addEventListener('resize', updateTimerPosition);
+  
   let currentCount = Math.floor(Math.random() * 30) + 20;
   countEl.textContent = currentCount;
   

@@ -394,6 +394,27 @@ function updateBubbles(progress){
 }
 
 
+function initOnlineTimer() {
+  if (!isMobileLike()) return;
+  
+  const timer = document.getElementById('online-timer');
+  const countEl = document.getElementById('online-count');
+  
+  if (!timer || !countEl) return;
+  
+  function updateRandomCount() {
+    const count = Math.floor(Math.random() * 50) + 10;
+    countEl.textContent = count;
+  }
+  
+  updateRandomCount();
+  setInterval(updateRandomCount, 3000);
+  
+  window.setOnlineCount = function(count) {
+    countEl.textContent = count;
+  };
+}
+
 window.addEventListener("load", () => {
   errorBox.style.display = "none";
   layoutStage();
@@ -405,6 +426,8 @@ window.addEventListener("load", () => {
     unityInstanceRef = instance;
     window.unityInstance = instance;
     sendSafeAreaToUnity();
+    
+    initOnlineTimer();
 
     bgCanvas.style.background = '#210d32';
     bgCtx.fillStyle = '#210d32';
